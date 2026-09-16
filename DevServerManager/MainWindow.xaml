@@ -1,0 +1,185 @@
+﻿<Window x:Class="DevServerManager.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Dev Server Manager" Height="820" Width="1340" Closing="Window_Closing">
+  <Grid Background="{DynamicResource AppBackground}">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="294" />
+      <ColumnDefinition />
+    </Grid.ColumnDefinitions>
+    <Border Background="{DynamicResource Sidebar}" Padding="20">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Bottom">
+          <Button x:Name="NavProjects" Content="▣  Managed projects" Click="ShowProjects_Click" Margin="0,0,0,8" />
+          <Button x:Name="NavServers" Content="●  Running servers" Click="ShowServers_Click" />
+          <Border BorderBrush="#405172" BorderThickness="0,1,0,0" Padding="0,16,0,0" Margin="0,16,0,0">
+            <StackPanel>
+              <TextBlock Text="COLOR MODE" Foreground="#95A5BE" FontSize="10" />
+              <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding AppTheme}" SelectionChanged="ThemeSelector_SelectionChanged" />
+              <Button Content="＋ Add project" Click="AddProject_Click" Style="{StaticResource PrimaryButton}" Margin="0,12,0,0" />
+              <Button Content="Remove selected" Click="RemoveProject_Click" Margin="0,8,0,0" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Text="▶  DEVFLOW" Foreground="White" FontSize="18" FontWeight="Bold" />
+          <TextBlock Text="LOCAL SERVER CONTROL" Foreground="#9BACCA" FontSize="10" />
+          <TextBlock Text="PROJECTS" Foreground="#9BACCA" FontSize="10" Margin="0,30,0,8" />
+          <ListBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}" SelectionChanged="ProjectList_SelectionChanged" Background="Transparent" BorderThickness="0">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Border Background="#273550" CornerRadius="8" Padding="12" Margin="0,0,0,5">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Name}" Foreground="White" />
+                    <TextBlock Text="{Binding Status}" Foreground="#A9B9D2" FontSize="11" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </StackPanel>
+      </DockPanel>
+    </Border>
+    <TabControl x:Name="MainTabs" Grid.Column="1" Margin="30">
+      <TabControl.Resources>
+        <Style TargetType="TabItem">
+          <Setter Property="Visibility" Value="Collapsed" />
+        </Style>
+      </TabControl.Resources>
+      <TabItem>
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="200" />
+          </Grid.RowDefinitions>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="{Binding SelectedProject.Name}" FontSize="30" FontWeight="SemiBold" />
+              <TextBlock Text="Start, inspect, and stop every service in one place." Foreground="{DynamicResource MutedText}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+              <Button Content="Open web" Click="OpenWeb_Click" />
+              <Button Content="Stop project" Click="StopProject_Click" Style="{StaticResource DangerButton}" Margin="8,0" />
+              <Button Content="▶ Start project" Click="StartProject_Click" Style="{StaticResource PrimaryButton}" />
+            </StackPanel>
+          </Grid>
+          <Border Grid.Row="1" Background="{DynamicResource Surface}" Padding="16" Margin="0,20,0,16" CornerRadius="12">
+            <Grid DataContext="{Binding SelectedProject}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+              </Grid.ColumnDefinitions>
+              <TextBox Text="{Binding Name}" />
+              <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox Text="{Binding WorkingDirectory}" />
+                <Button Grid.Column="1" Content="Browse" Click="BrowseFolder_Click" Margin="8,0,0,0" />
+              </Grid>
+            </Grid>
+          </Border>
+          <Border Grid.Row="2" Background="{DynamicResource Surface}" Padding="16" CornerRadius="12">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                <TextBlock Text="Services" FontSize="19" Margin="0,0,16,8" />
+                <Button Content="Add service" Click="AddService_Click" Margin="4" />
+                <Button Content="Remove" Click="RemoveService_Click" Margin="4" />
+                <Button Content="Restart selected" Click="RestartService_Click" Margin="4" />
+              </StackPanel>
+              <DataGrid x:Name="ServiceGrid" ItemsSource="{Binding SelectedProject.Services}" AutoGenerateColumns="False" CellEditEnding="ServiceGrid_CellEditEnding">
+                <DataGrid.Columns>
+                  <DataGridCheckBoxColumn Header="ON" Binding="{Binding Enabled}" Width="48" />
+                  <DataGridTextColumn Header="SERVICE" Binding="{Binding Name}" Width="110" />
+                  <DataGridTextColumn Header="COMMAND" Binding="{Binding Command}" Width="*" />
+                  <DataGridTextColumn Header="PORT" Binding="{Binding Port}" Width="65" />
+                  <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="82" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </DockPanel>
+          </Border>
+          <Border Grid.Row="3" Background="{DynamicResource Surface}" Padding="16" Margin="0,16,0,0" CornerRadius="12">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                <TextBlock Text="Environment variables" FontSize="16" Margin="0,0,16,8" />
+                <TextBlock Text="Applied to every service in this project." Foreground="{DynamicResource MutedText}" Margin="0,3,12,8" />
+                <Button Content="Add variable" Click="AddEnvironmentVariable_Click" Margin="4" />
+                <Button Content="Remove" Click="RemoveEnvironmentVariable_Click" Margin="4" />
+              </StackPanel>
+              <DataGrid x:Name="EnvironmentGrid" ItemsSource="{Binding SelectedProject.EnvironmentVariables}" AutoGenerateColumns="False" CanUserAddRows="False" CellEditEnding="EnvironmentGrid_CellEditEnding" Height="118">
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="260" />
+                  <DataGridTextColumn Header="VALUE" Binding="{Binding Value}" Width="*" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </DockPanel>
+          </Border>
+          <Border Grid.Row="4" Background="{DynamicResource LogBackground}" Padding="16" Margin="0,16,0,0" CornerRadius="12">
+            <TextBox x:Name="LogOutput" Background="Transparent" Foreground="#DCE7F8" IsReadOnly="True" BorderThickness="0" />
+          </Border>
+        </Grid>
+      </TabItem>
+      <TabItem>
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <StackPanel>
+            <TextBlock Text="Running servers" FontSize="30" FontWeight="SemiBold" />
+            <TextBlock Text="Grouped by source location. Hover a command to see its original full path." Foreground="{DynamicResource MutedText}" />
+          </StackPanel>
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,20,0,0">
+            <ItemsControl ItemsSource="{Binding ServerGroups}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Expander IsExpanded="True" Margin="0,0,0,12">
+                    <Expander.Header>
+                      <Border Background="{DynamicResource SurfaceMuted}" Padding="12" CornerRadius="8">
+                        <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" />
+                      </Border>
+                    </Expander.Header>
+                    <Border Background="{DynamicResource Surface}" Padding="10">
+                      <DataGrid ItemsSource="{Binding Servers}" AutoGenerateColumns="False" CanUserAddRows="False" FrozenColumnCount="1" FlowDirection="RightToLeft" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                        <DataGrid.Columns>
+                          <DataGridTemplateColumn Header="CONTROL" Width="155">
+                            <DataGridTemplateColumn.CellTemplate>
+                              <DataTemplate>
+                                <StackPanel Orientation="Horizontal" FlowDirection="LeftToRight">
+                                  <Button Content="Start" Tag="{Binding}" Click="StartServer_Click" Style="{StaticResource PrimaryButton}" Padding="10,5" />
+                                  <Button Content="Stop" Tag="{Binding}" Click="StopServer_Click" Style="{StaticResource DangerButton}" Padding="10,5" Margin="6,0,0,0" />
+                                </StackPanel>
+                              </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                          </DataGridTemplateColumn>
+                          <DataGridTextColumn Header="COMMAND" Binding="{Binding DisplayCommand}" Width="450">
+                            <DataGridTextColumn.ElementStyle>
+                              <Style TargetType="TextBlock">
+                                <Setter Property="FlowDirection" Value="LeftToRight" />
+                                <Setter Property="ToolTip" Value="{Binding Command}" />
+                              </Style>
+                            </DataGridTextColumn.ElementStyle>
+                          </DataGridTextColumn>
+                          <DataGridTextColumn Header="PORT" Binding="{Binding Port}" Width="65" />
+                          <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="70" />
+                          <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="90" />
+                          <DataGridTextColumn Header="SERVICE" Binding="{Binding ServiceName}" Width="105" />
+                          <DataGridTextColumn Header="PROJECT" Binding="{Binding ProjectName}" Width="140" />
+                        </DataGrid.Columns>
+                      </DataGrid>
+                    </Border>
+                  </Expander>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
+      </TabItem>
+    </TabControl>
+  </Grid>
+</Window>
