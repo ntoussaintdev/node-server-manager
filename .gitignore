@@ -1,0 +1,6 @@
+# Dev Server Manager generated output and local portable state
+/DevServerManager/bin/
+/DevServerManager/obj/
+/DevServerManager/build-verify/
+/DevServerManager-build-verify/
+/DevServerManager/**/*.db
