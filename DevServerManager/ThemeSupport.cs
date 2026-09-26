@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using Microsoft.Data.Sqlite;
+using System.Text.Json;
 using System.Windows;
 using Application = System.Windows.Application;
 
@@ -22,6 +23,21 @@ public sealed class UiSettingsStore
         using var command = connection.CreateCommand();
         command.CommandText = "INSERT INTO settings (key, value) VALUES ('theme', $value) ON CONFLICT(key) DO UPDATE SET value = excluded.value";
         command.Parameters.AddWithValue("$value", theme.ToString()); command.ExecuteNonQuery();
+    }
+    public Dictionary<string, bool> LoadServerGroupExpansion()
+    {
+        using var connection = PortableDatabase.OpenConnection();
+        using var command = connection.CreateCommand(); command.CommandText = "SELECT value FROM settings WHERE key = 'server_group_expansion'";
+        var value = command.ExecuteScalar()?.ToString();
+        try { return value is null ? new(StringComparer.OrdinalIgnoreCase) : new(JsonSerializer.Deserialize<Dictionary<string, bool>>(value) ?? [], StringComparer.OrdinalIgnoreCase); }
+        catch (JsonException) { return new(StringComparer.OrdinalIgnoreCase); }
+    }
+    public void SaveServerGroupExpansion(IReadOnlyDictionary<string, bool> expansion)
+    {
+        using var connection = PortableDatabase.OpenConnection();
+        using var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO settings (key, value) VALUES ('server_group_expansion', $value) ON CONFLICT(key) DO UPDATE SET value = excluded.value";
+        command.Parameters.AddWithValue("$value", JsonSerializer.Serialize(expansion)); command.ExecuteNonQuery();
     }
 }
 

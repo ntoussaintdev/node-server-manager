@@ -73,7 +73,8 @@ public partial class App : System.Windows.Application
     public void ExitManager()
     {
         IsExplicitExit = true;
-        Shutdown();
+        if (MainWindow is null) Shutdown();
+        else MainWindow.Close();
     }
 
     public void ShowTrayNotification() => _trayIcon?.ShowBalloonTip(2500, "Dev Server Manager is still running", "Use the tray icon to reopen the manager or exit and stop its servers.", Forms.ToolTipIcon.Info);

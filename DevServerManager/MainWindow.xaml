@@ -7,7 +7,6 @@
     <Border Background="{DynamicResource Sidebar}" Padding="20">
       <DockPanel>
         <StackPanel DockPanel.Dock="Bottom">
-          <Button x:Name="NavProjects" Content="▣  Managed projects" Click="ShowProjects_Click" Margin="0,0,0,8" />
           <Button x:Name="NavServers" Content="●  Running servers" Click="ShowServers_Click" />
           <Border BorderBrush="#405172" BorderThickness="0,1,0,0" Padding="0,16,0,0" Margin="0,16,0,0">
             <StackPanel>
@@ -18,11 +17,12 @@
             </StackPanel>
           </Border>
         </StackPanel>
-        <StackPanel>
+        <Grid>
+          <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
           <TextBlock Text="▶  DEVFLOW" Foreground="White" FontSize="18" FontWeight="Bold" />
-          <TextBlock Text="LOCAL SERVER CONTROL" Foreground="#9BACCA" FontSize="10" />
-          <TextBlock Text="PROJECTS" Foreground="#9BACCA" FontSize="10" Margin="0,30,0,8" />
-          <ListBox ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}" SelectionChanged="ProjectList_SelectionChanged" Background="Transparent" BorderThickness="0">
+          <TextBlock Grid.Row="1" Text="LOCAL SERVER CONTROL" Foreground="#9BACCA" FontSize="10" />
+          <TextBlock Grid.Row="2" Text="PROJECTS" Foreground="#9BACCA" FontSize="10" Margin="0,30,0,8" />
+          <ListBox Grid.Row="3" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}" SelectionChanged="ProjectList_SelectionChanged" MouseLeftButtonUp="ProjectList_MouseLeftButtonUp" Background="Transparent" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Auto">
             <ListBox.ItemTemplate>
               <DataTemplate>
                 <Border Background="#273550" CornerRadius="8" Padding="12" Margin="0,0,0,5">
@@ -34,7 +34,7 @@
               </DataTemplate>
             </ListBox.ItemTemplate>
           </ListBox>
-        </StackPanel>
+        </Grid>
       </DockPanel>
     </Border>
     <TabControl x:Name="MainTabs" Grid.Column="1" Margin="30">
@@ -63,7 +63,7 @@
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
               <Button Content="Open web" Click="OpenWeb_Click" />
-              <Button Content="Stop project" Click="StopProject_Click" Style="{StaticResource DangerButton}" Margin="8,0" />
+              <Button x:Name="StopProjectButton" Content="Stop project" Click="StopProject_Click" Style="{StaticResource DangerButton}" Margin="8,0" />
               <Button Content="▶ Start project" Click="StartProject_Click" Style="{StaticResource PrimaryButton}" />
             </StackPanel>
           </Grid>
@@ -130,15 +130,18 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
-          <StackPanel>
-            <TextBlock Text="Running servers" FontSize="30" FontWeight="SemiBold" />
-            <TextBlock Text="Grouped by source location. Hover a command to see its original full path." Foreground="{DynamicResource MutedText}" />
-          </StackPanel>
-          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,20,0,0">
+          <DockPanel>
+            <Button x:Name="RefreshServersButton" Content="↻  Refresh" Click="RefreshServers_Click" DockPanel.Dock="Right" Padding="14,7" Margin="12,0,0,0" VerticalAlignment="Center" />
+            <StackPanel>
+              <TextBlock Text="Running servers" FontSize="30" FontWeight="SemiBold" />
+              <TextBlock Text="Grouped by source location. Hover a command to see its original full path." Foreground="{DynamicResource MutedText}" />
+            </StackPanel>
+          </DockPanel>
+          <ScrollViewer x:Name="ServerScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,20,0,0" PreviewMouseWheel="ServerScroll_PreviewMouseWheel">
             <ItemsControl ItemsSource="{Binding ServerGroups}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                  <Expander IsExpanded="True" Margin="0,0,0,12">
+                  <Expander IsExpanded="{Binding IsExpanded, Mode=TwoWay}" Margin="0,0,0,12">
                     <Expander.Header>
                       <Border Background="{DynamicResource SurfaceMuted}" Padding="12" CornerRadius="8">
                         <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" />

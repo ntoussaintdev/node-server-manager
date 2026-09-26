@@ -2,11 +2,11 @@
 
 ## Status
 
-Planned — implementation deferred.
+Implemented. Build and app startup verified; multi-monitor and mixed-DPI checks remain manual.
 
 ## Scope
 
-Three small usability fixes for `DevServerManager`. This plan deliberately records future work only; it does not authorize implementation yet.
+Three usability fixes for `DevServerManager`, implemented alongside the running-server refresh and pointer scrolling improvements.
 
 ## 1. Correct custom-chrome maximization bounds
 

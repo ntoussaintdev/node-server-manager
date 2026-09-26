@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned — implementation deferred.
+Implemented. Build and local IPv4/IPv6 listener cleanup smoke test verified.
 
 ## Goal
 
