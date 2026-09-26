@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented. Build and app startup verified; multi-monitor and mixed-DPI checks remain manual.
+Implemented. Maximized bounds and restore were verified against the primary monitor's work area; multi-monitor and mixed-DPI checks remain manual.
 
 ## Scope
 

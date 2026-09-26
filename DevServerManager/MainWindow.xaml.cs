@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Interop;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using ContextMenu = System.Windows.Controls.ContextMenu;
@@ -19,6 +20,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public ProjectDefinition? SelectedProject { get => selectedProject; set { selectedProject = value; Changed(nameof(SelectedProject)); RefreshLog(); } } public string FooterMessage { get => footerMessage; set { footerMessage = value; Changed(nameof(FooterMessage)); } } public ThemeMode AppTheme { get => themeMode; set { themeMode = value; Changed(nameof(AppTheme)); } }
     public MainWindow() { themeMode = uiSettings.LoadTheme(); groupExpansion = uiSettings.LoadServerGroupExpansion(); ThemeManager.Apply(themeMode); InitializeComponent(); CreateCustomChrome(); DataContext = this; SetNavigationActive(0); KeyDown += MainWindow_KeyDown; ConfigureServiceMenu(); manager.LogReceived += (_, e) => Dispatcher.Invoke(() => { if (e.Project == SelectedProject?.Name) AppendLog(e.Text); }); manager.StatusChanged += (_, _) => Dispatcher.Invoke(() => { RefreshLog(); RefreshManagedServices(); }); foreach (var p in store.Load()) Projects.Add(p); SelectedProject = Projects.FirstOrDefault(); RefreshManagedServices(); initialized = true; FooterMessage = Projects.Count == 0 ? "Add a project to begin." : $"Loaded {Projects.Count} project(s)."; }
     void CreateCustomChrome() { WindowStyle = WindowStyle.None; var root = (Grid)Content; ((FrameworkElement)root.Children[0]).Margin = new Thickness(0, 42, 0, 0); MainTabs.Margin = new Thickness(30, 52, 30, 18); System.Windows.Shell.WindowChrome.SetWindowChrome(this, new System.Windows.Shell.WindowChrome { CaptionHeight = 42, ResizeBorderThickness = new Thickness(6) }); var bar = new Grid { Height = 42, Background = (System.Windows.Media.Brush)FindResource("Sidebar"), VerticalAlignment = VerticalAlignment.Top }; bar.ColumnDefinitions.Add(new ColumnDefinition()); bar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(138) }); var label = new TextBlock { Text = ">_  DEVFLOW  /  DEV SERVER MANAGER", Foreground = System.Windows.Media.Brushes.White, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(18, 0, 0, 0) }; bar.Children.Add(label); var controls = new StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, HorizontalAlignment = System.Windows.HorizontalAlignment.Right }; foreach (var pair in new[] { ("—", new RoutedEventHandler(Minimize_Click)), ("□", new RoutedEventHandler(Maximize_Click)), ("×", new RoutedEventHandler(Close_Click)) }) { var button = new System.Windows.Controls.Button { Content = pair.Item1, Width = 46, Padding = new Thickness(0), Background = System.Windows.Media.Brushes.Transparent, Foreground = System.Windows.Media.Brushes.White, BorderThickness = new Thickness(0) }; button.Click += pair.Item2; if (pair.Item1 == "□") maximizeButton = button; System.Windows.Shell.WindowChrome.SetIsHitTestVisibleInChrome(button, true); controls.Children.Add(button); } Grid.SetColumn(controls, 1); bar.Children.Add(controls); Grid.SetColumnSpan(bar, 2); Grid.SetZIndex(bar, 100); root.Children.Add(bar); StateChanged += (_, _) => UpdateMaximizeGlyph(); UpdateMaximizeGlyph(); }
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        (PresentationSource.FromVisual(this) as HwndSource)?.AddHook(WindowMessage);
+    }
+    IntPtr WindowMessage(IntPtr window, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (message == MaximizeWorkArea.WmGetMinMaxInfo) handled = MaximizeWorkArea.Apply(window, lParam);
+        return IntPtr.Zero;
+    }
     void Save() { store.Save(Projects); FooterMessage = "Configuration saved locally."; }
     void AddProject_Click(object s, RoutedEventArgs e) { var p = new ProjectDefinition { Name = "New project" }; p.Services.Add(ServiceDefinition.Web(4201)); p.Services.Add(ServiceDefinition.Api(3001)); Projects.Add(p); SelectedProject = p; RefreshManagedServices(); Save(); }
     void RemoveProject_Click(object s, RoutedEventArgs e) { if (SelectedProject is null) return; if (manager.IsProjectRunning(SelectedProject)) { Warn("Stop this project before removing it."); return; } if (MessageBox.Show($"Remove '{SelectedProject.Name}' from the manager? Its files will not be deleted.", "Remove project", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return; Projects.Remove(SelectedProject); SelectedProject = Projects.FirstOrDefault(); RefreshManagedServices(); Save(); }
