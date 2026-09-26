@@ -62,6 +62,7 @@
               <TextBlock Text="Start, inspect, and stop every service in one place." Foreground="{DynamicResource MutedText}" />
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal">
+              <Button x:Name="RefreshProjectButton" Content="↻ Refresh status" Click="RefreshProject_Click" Margin="0,0,8,0" />
               <Button Content="Open web" Click="OpenWeb_Click" />
               <Button x:Name="StopProjectButton" Content="Stop project" Click="StopProject_Click" Style="{StaticResource DangerButton}" Margin="8,0" />
               <Button Content="▶ Start project" Click="StartProject_Click" Style="{StaticResource PrimaryButton}" />
@@ -98,7 +99,8 @@
                   <DataGridTextColumn Header="SERVICE" Binding="{Binding Name}" Width="110" />
                   <DataGridTextColumn Header="COMMAND" Binding="{Binding Command}" Width="*" />
                   <DataGridTextColumn Header="PORT" Binding="{Binding Port}" Width="65" />
-                  <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="82" />
+                  <DataGridTextColumn Header="STATUS" Binding="{Binding Status}" Width="90" IsReadOnly="True" />
+                  <DataGridTextColumn Header="PID(S)" Binding="{Binding ListenerPids}" Width="105" IsReadOnly="True" />
                 </DataGrid.Columns>
               </DataGrid>
             </DockPanel>
@@ -107,12 +109,21 @@
             <DockPanel>
               <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                 <TextBlock Text="Environment variables" FontSize="16" Margin="0,0,16,8" />
-                <TextBlock Text="Applied to every service in this project." Foreground="{DynamicResource MutedText}" Margin="0,3,12,8" />
+                 <TextBlock Text="Choose one service or all services for each row." Foreground="{DynamicResource MutedText}" Margin="0,3,12,8" />
                 <Button Content="Add variable" Click="AddEnvironmentVariable_Click" Margin="4" />
                 <Button Content="Remove" Click="RemoveEnvironmentVariable_Click" Margin="4" />
               </StackPanel>
               <DataGrid x:Name="EnvironmentGrid" ItemsSource="{Binding SelectedProject.EnvironmentVariables}" AutoGenerateColumns="False" CanUserAddRows="False" CellEditEnding="EnvironmentGrid_CellEditEnding" Height="118">
                 <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="SERVICE" Width="145">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate>
+                        <ComboBox ItemsSource="{Binding Targets}" SelectedItem="{Binding SelectedTarget, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DropDownClosed="EnvironmentTarget_DropDownClosed">
+                          <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
+                        </ComboBox>
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                   <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="260" />
                   <DataGridTextColumn Header="VALUE" Binding="{Binding Value}" Width="*" />
                 </DataGrid.Columns>
@@ -128,6 +139,7 @@
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
           <DockPanel>
@@ -137,7 +149,12 @@
               <TextBlock Text="Grouped by source location. Hover a command to see its original full path." Foreground="{DynamicResource MutedText}" />
             </StackPanel>
           </DockPanel>
-          <ScrollViewer x:Name="ServerScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,20,0,0" PreviewMouseWheel="ServerScroll_PreviewMouseWheel">
+          <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,14,0,0">
+            <TextBlock Text="Scan TCP port" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBox x:Name="ScanPortInput" Width="88" AutomationProperties.Name="TCP port" ToolTip="Enter a TCP port from 1 to 65535" />
+            <Button x:Name="ScanPortButton" Content="Scan port" Click="ScanPort_Click" Margin="8,0,0,0" Padding="14,5" />
+          </StackPanel>
+          <ScrollViewer x:Name="ServerScroll" Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,20,0,0" PreviewMouseWheel="ServerScroll_PreviewMouseWheel">
             <ItemsControl ItemsSource="{Binding ServerGroups}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>
