@@ -4,3 +4,11 @@
 /DevServerManager/build-verify/
 /DevServerManager-build-verify/
 /DevServerManager/**/*.db
+
+# IDE files, published output, and portable database sidecars
+.vs/
+/artifacts/
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
