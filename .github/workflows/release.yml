@@ -1,0 +1,58 @@
+name: Windows release packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version, e.g. 1.0.0 or 1.1.0-rc.1 (builds artifacts only)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: windows-2025
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup --version=6.4.3 --yes --no-progress
+          if ($LASTEXITCODE -ne 0) { throw 'Inno Setup installation failed.' }
+      - name: Build and verify packages
+        id: package
+        shell: pwsh
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          $version = if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') { $env:INPUT_VERSION } else { $env:GITHUB_REF_NAME.Substring(1) }
+          ./scripts/package.ps1 -Version $version
+          "version=$version" >> $env:GITHUB_OUTPUT
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DevServerManager-${{ steps.package.outputs.version }}-windows-x64
+          path: artifacts/${{ steps.package.outputs.version }}/*
+          if-no-files-found: error
+      - name: Create draft GitHub release
+        if: github.event_name == 'push'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PACKAGE_VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          $assets = @(Get-ChildItem -LiteralPath "artifacts/$env:PACKAGE_VERSION" -File | ForEach-Object { $_.FullName })
+          $arguments = @('release', 'create', $env:GITHUB_REF_NAME, '--verify-tag', '--draft', '--generate-notes', '--title', "Dev Server Manager $env:PACKAGE_VERSION")
+          if ($env:PACKAGE_VERSION.Contains('-')) { $arguments += '--prerelease' }
+          & gh @arguments @assets
+          if ($LASTEXITCODE -ne 0) { throw 'Draft release creation failed.' }

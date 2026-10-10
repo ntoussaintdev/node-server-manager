@@ -15,7 +15,9 @@ dotnet run --project DevServerManager
 3. Click **Start project** to launch every enabled service in start-order.
 4. Use **Stop project** to terminate its tracked process trees, wait up to five seconds for exit, then stop any listeners still using that project's configured service ports. Other configured ports are not inspected.
 
-All app data is portable. On first launch, the app creates `dev-server-manager.db` beside `DevServerManager.exe`; it stores registered projects, color mode, and running-server group expansion in that SQLite database. The initial database seeds the theme to `Device` automatically. Move the executable folder with its database to carry the complete configuration with it; no AppData files are required.
+The app stores registered projects, color mode, and running-server group expansion in SQLite. By default, the database is `%LOCALAPPDATA%\DevServerManager\dev-server-manager.db`. With `portable.flag` beside `DevServerManager.exe` (included in the portable ZIP), the database stays beside the executable. Move the complete portable folder with its database to carry configuration with it. The initial database seeds the theme to `Device` automatically.
+
+For an earlier build's database beside the EXE, add `portable.flag` to keep that location or let the new build import it into AppData once, when no AppData database exists. The original remains available. See the repository's `docs/releases.md` for installation and upgrades.
 
 Use `{port}`, `{webPort}`, `{apiPort}`, or `{projectFolder}` in commands and browser URLs. A project must use distinct ports for enabled services.
 
@@ -29,7 +31,7 @@ Environment variable rows can target **All services** or one service chosen from
 
 ## Appearance
 
-Use the **Color mode** selector in the lower-left sidebar to choose **Light**, **Dark**, or **Device**. Device mode follows the current Windows app theme preference when the manager starts. The choice is stored in the portable `dev-server-manager.db` alongside the executable.
+Use the **Color mode** selector in the lower-left sidebar to choose **Light**, **Dark**, or **Device**. Device mode follows the current Windows app theme preference when the manager starts. The choice is stored in the configuration database for the current installation mode.
 
 ## Managed Node Servers
 

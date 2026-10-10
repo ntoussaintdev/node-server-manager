@@ -51,24 +51,6 @@ public sealed class ManagedServiceRow : Notify
 public sealed class ServerSourceGroup(string sourceLocation, IEnumerable<ManagedServiceRow> servers, bool isExpanded = false) : Notify { bool expanded = isExpanded; public string SourceLocation { get; } = sourceLocation; public ObservableCollection<ManagedServiceRow> Servers { get; } = [.. servers]; public string Summary => SourceLocation == "Scanned port" ? $"Scanned port {Servers.FirstOrDefault()?.Port}  •  {Servers.Count(row => row.Status == "Running")} process(es)" : $"{SourceLocation}  •  {Servers.Count} server(s)"; public bool IsExpanded { get => expanded; set => Set(ref expanded, value); } }
 public sealed class ServiceDefinition : Notify { string name="", command="", url="", status="Stopped", listenerPids=""; int port, order; bool enabled=true; ServiceTemplate template; public Guid Id {get;set;}=Guid.NewGuid(); public string Name {get=>name;set=>Set(ref name,value);} public string Command {get=>command;set=>Set(ref command,value);} public string BrowserUrl {get=>url;set=>Set(ref url,value);} public string Status {get=>status;set=>Set(ref status,value);} [JsonIgnore] public string ListenerPids {get=>listenerPids;set=>Set(ref listenerPids,value);} public int Port {get=>port;set=>Set(ref port,value);} public int StartOrder {get=>order;set=>Set(ref order,value);} public bool Enabled {get=>enabled;set=>Set(ref enabled,value);} public ServiceTemplate Template {get=>template;set=>Set(ref template,value);} public void ApplyTemplate(){Command=TemplateCatalog.Command(Template);if(TemplateCatalog.IsWeb(Template)&&string.IsNullOrWhiteSpace(BrowserUrl))BrowserUrl="http://localhost:{port}";} public static ServiceDefinition Web(int p)=>new(){Name="Web",Template=ServiceTemplate.NxWeb,Command=TemplateCatalog.Command(ServiceTemplate.NxWeb),Port=p,StartOrder=20,BrowserUrl="http://localhost:{port}"}; public static ServiceDefinition Api(int p)=>new(){Name="API",Template=ServiceTemplate.NxApi,Command=TemplateCatalog.Command(ServiceTemplate.NxApi),Port=p,StartOrder=10}; }
 public static class TemplateCatalog { public static string Command(ServiceTemplate template)=>template switch { ServiceTemplate.NxWeb=>"npx nx serve web --port {port}", ServiceTemplate.NxApi=>"npx nx serve api --port {port}", ServiceTemplate.AngularCli=>"npx ng serve --port {port}", ServiceTemplate.NpmDev=>"npm run dev -- --port {port}", _=>"" }; public static bool IsWeb(ServiceTemplate t)=>t is ServiceTemplate.NxWeb or ServiceTemplate.AngularCli or ServiceTemplate.NpmDev; }
-public static class PortableDatabase
-{
-    public static string DatabasePath { get; } = Path.Combine(AppContext.BaseDirectory, "dev-server-manager.db");
-    public static SqliteConnection OpenConnection()
-    {
-        var connection = new SqliteConnection(new SqliteConnectionStringBuilder { DataSource = DatabasePath }.ToString());
-        connection.Open();
-        using var command = connection.CreateCommand();
-        command.CommandText = """
-            CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY, name TEXT NOT NULL, definition_json TEXT NOT NULL);
-            CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-            INSERT OR IGNORE INTO settings (key, value) VALUES ('theme', 'Device');
-            """;
-        command.ExecuteNonQuery();
-        return connection;
-    }
-}
-
 public sealed class ConfigurationStore
 {
     readonly JsonSerializerOptions options = new() { WriteIndented = true, Converters = { new JsonStringEnumConverter() } };
