@@ -66,7 +66,7 @@ th { color: var(--muted); font-weight: 600; }
 <ul>
   <li>Plans live under <code>docs/plans/</code>, in a folder that says what state they are in: active, implemented, archived or deferred.</li>
   <li>A plan file is named <code>&lt;yyyy-mm-dd&gt;-n&lt;index&gt;-&lt;plan name&gt;</code>, with no spaces or special characters. Plans named before the four-digit year keep their <code>yy-mm-dd</code> names.</li>
-  <li>How a document looks and is laid out comes from the <a href="html-documentation-guideline.html">HTML documentation guideline</a>.</li>
+  <li>How a document looks and is laid out comes from the <a href="html-documentation-guideline.html">HTML documentation guideline</a>. Plans with screens have interactive demos (§4.1). The editable document format is used only when the user asks for it (§4.2).</li>
   <li>The agent does not test its work live. The operator tests by hand.</li>
   <li><code>CLAUDE.md</code> and <code>AGENTS.md</code> mirror each other.</li>
 </ul>
@@ -111,6 +111,17 @@ th { color: var(--muted); font-weight: 600; }
   <li>A demo that needs more room goes wide and keeps its text and element sizes. It is not shrunk to fit the text column.</li>
 </ul>
 <p>The guideline is the source. Where this list and the guideline differ, follow the guideline.</p>
+<p>Steps in guides, runbooks and procedures also get a short descriptive name, such as <strong>Set GitHub secrets</strong>. See the <a href="step-naming-guideline.html">step naming guideline</a>.</p>
+<h3>4.1 Plans with screens</h3>
+<ul>
+  <li>Plans that propose or change screens carry <strong>interactive demos</strong>: a mock phone or computer that the reader taps through, with Show me, Play all, Back and Start again. Static pictures alone are not enough.</li>
+  <li>Build them with the project's demo kit where it has one (for example a page builder shared with the user guides), and run its checks. They must end with no problems.</li>
+</ul>
+<h3>4.2 Editable documents only on demand</h3>
+<ul>
+  <li>The editable document format (click to edit, change log, export) is used <strong>only when the user asks for it</strong> for a specific document.</li>
+  <li>Never use it by default, for plans or any other document.</li>
+</ul>
 <p>Documents are written as files in the repository. They are not published anywhere else.</p>
 
 <h2 id="testing">5. No live testing</h2>
